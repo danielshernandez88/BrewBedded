@@ -24,8 +24,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "ds18b20.h"
-#include "dwt_stm32_delay.h"
+#include "tm_stm32_delay.h"
+#include "tm_stm32_onewire.h"
+#include "tm_stm32_ds18b20.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -63,7 +64,11 @@ osThreadId Task_10msHandle;
 uint32_t myTask10msBuffer[ 128 ];
 osStaticThreadDef_t myTask10msControlBlock;
 /* USER CODE BEGIN PV */
-volatile float temp;
+TM_OneWire_t oneWireDS18B20;
+uint8_t DS_ROM[8];
+/* Temperature variable */
+float temp;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -93,7 +98,6 @@ void StartTask10ms(void const * argument);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	static volatile uint8_t retVal;
   /* USER CODE END 1 */
   
 
@@ -118,16 +122,29 @@ int main(void)
   MX_ADC1_Init();
   MX_I2C1_Init();
   MX_TIM2_Init();
-
   /* USER CODE BEGIN 2 */
-  DWT_Delay_Init();
-  if(ds18b20_init() == 1)
+  TM_OneWire_Init(&oneWireDS18B20, ds18b20_data_GPIO_Port, ds18b20_data_Pin);
+
+  if (TM_OneWire_First(&oneWireDS18B20))
   {
-  	retVal = 1;
+  	HAL_GPIO_WritePin(LED_GPIO_Port,LED_Pin,GPIO_PIN_SET);
+
+  	/* Read ROM number */
+  	TM_OneWire_GetFullROM(&oneWireDS18B20, DS_ROM);
   }
   else
   {
-  	retVal = 0;
+  	/* Bad Initialization */
+  	HAL_GPIO_WritePin(LED_GPIO_Port,LED_Pin,GPIO_PIN_RESET);
+  }
+
+
+  if (TM_DS18B20_Is(DS_ROM)) {
+  	/* Set resolution */
+  	TM_DS18B20_SetResolution(&oneWireDS18B20, DS_ROM, TM_DS18B20_Resolution_12bits);
+
+  	/* Start conversion on all sensors */
+  	TM_DS18B20_StartAll(&oneWireDS18B20);
   }
   /* USER CODE END 2 */
 
@@ -403,7 +420,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : ds18b20_data_Pin */
   GPIO_InitStruct.Pin = ds18b20_data_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(ds18b20_data_GPIO_Port, &GPIO_InitStruct);
@@ -497,7 +514,6 @@ void StartTask10ms(void const * argument)
   /* USER CODE BEGIN StartTask10ms */
 	TickType_t xLastWakeTime;
 	const TickType_t xFrequency = 10;
-	static uint16_t varCntr = 0;
 
 	// Initialize the xLastWakeTime variable with the current time.
 	xLastWakeTime = xTaskGetTickCount();
@@ -507,28 +523,26 @@ void StartTask10ms(void const * argument)
 		// Wait for the next cycle.
 		vTaskDelayUntil( &xLastWakeTime, xFrequency );
 
-		// Perform action here.
-		if(varCntr < 100)
+		if (TM_DS18B20_Is(DS_ROM))
 		{
-			HAL_GPIO_WritePin(LED_GPIO_Port,LED_Pin,GPIO_PIN_RESET);
-		}
-		else if ((varCntr >= 100) && (varCntr < 200))
-		{
-			HAL_GPIO_WritePin(LED_GPIO_Port,LED_Pin,GPIO_PIN_SET);
-		}
-		else
-		{
-			/* Do Nothing */
-		}
+			/* Everything is done */
+			if (TM_DS18B20_AllDone(&oneWireDS18B20))
+			{
+				/* Read temperature from device */
+				if (TM_DS18B20_Read(&oneWireDS18B20, DS_ROM, &temp))
+				{
+					/* Temp read OK, CRC is OK */
+					HAL_GPIO_WritePin(LED_GPIO_Port,LED_Pin,GPIO_PIN_SET);
+					/* Start again on all sensors */
+					TM_DS18B20_StartAll(&oneWireDS18B20);
 
-		if(varCntr < 200)
-		{
-			varCntr++;
-		}
-		else
-		{
-			varCntr = 0;
-			temp = ds18b20_GetTemp();
+				}
+				else
+				{
+					/* CRC failed, hardware problems on data line */
+					HAL_GPIO_WritePin(LED_GPIO_Port,LED_Pin,GPIO_PIN_RESET);
+				}
+			}
 		}
 	}
   /* USER CODE END StartTask10ms */

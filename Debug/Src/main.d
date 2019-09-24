@@ -41,8 +41,12 @@ Src/main.o: ../Src/main.c ../Inc/main.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
- C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/ds18b20.h \
- C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/dwt_stm32_delay.h
+ C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/tm_stm32_delay.h \
+ C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/tm_stm32_onewire.h \
+ C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/dwt_stm32_delay.h \
+ C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/tm_stm32_delay.h \
+ C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/tm_stm32_ds18b20.h \
+ C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/tm_stm32_onewire.h
 
 ../Inc/main.h:
 
@@ -130,6 +134,14 @@ Src/main.o: ../Src/main.c ../Inc/main.h \
 
 ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h:
 
-C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/ds18b20.h:
+C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/tm_stm32_delay.h:
+
+C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/tm_stm32_onewire.h:
 
 C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/dwt_stm32_delay.h:
+
+C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/tm_stm32_delay.h:
+
+C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/tm_stm32_ds18b20.h:
+
+C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/tm_stm32_onewire.h:
