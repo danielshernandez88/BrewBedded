@@ -90,10 +90,10 @@
 
 /* DS18B20 read temperature command */
 #define DS18B20_CMD_CONVERTTEMP			0x44 	/* Convert temperature */
-#define DS18B20_DECIMAL_STEPS_12BIT		0.0625
-#define DS18B20_DECIMAL_STEPS_11BIT		0.125
-#define DS18B20_DECIMAL_STEPS_10BIT		0.25
-#define DS18B20_DECIMAL_STEPS_9BIT		0.5
+#define DS18B20_DECIMAL_STEPS_12BIT		16 /*0.0625*/
+#define DS18B20_DECIMAL_STEPS_11BIT		8  /*0.125*/
+#define DS18B20_DECIMAL_STEPS_10BIT		4  /*0.25*/
+#define DS18B20_DECIMAL_STEPS_9BIT		2  /*0.5*/
 
 /* Bits locations for resolution */
 #define DS18B20_RESOLUTION_R1			6
@@ -163,7 +163,7 @@ void TM_DS18B20_StartAll(TM_OneWire_t* OneWireStruct);
  *            - 0: Device is not DS18B20 or conversion is not done yet or CRC failed
  *            - > 0: Temperature is read OK
  */
-uint8_t TM_DS18B20_Read(TM_OneWire_t* OneWireStruct, uint8_t* ROM, float* destination);
+uint8_t TM_DS18B20_Read(TM_OneWire_t* OneWireStruct, uint8_t* ROM, uint16_t* destination);
 
 /**
  * @brief  Gets resolution for temperature conversion from DS18B20 device

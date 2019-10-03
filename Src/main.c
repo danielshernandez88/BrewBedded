@@ -64,10 +64,7 @@ osThreadId Task_10msHandle;
 uint32_t myTask10msBuffer[ 128 ];
 osStaticThreadDef_t myTask10msControlBlock;
 /* USER CODE BEGIN PV */
-TM_OneWire_t oneWireDS18B20;
-uint8_t DS_ROM[8];
-/* Temperature variable */
-float temp;
+
 
 /* USER CODE END PV */
 
@@ -523,27 +520,8 @@ void StartTask10ms(void const * argument)
 		// Wait for the next cycle.
 		vTaskDelayUntil( &xLastWakeTime, xFrequency );
 
-		if (TM_DS18B20_Is(DS_ROM))
-		{
-			/* Everything is done */
-			if (TM_DS18B20_AllDone(&oneWireDS18B20))
-			{
-				/* Read temperature from device */
-				if (TM_DS18B20_Read(&oneWireDS18B20, DS_ROM, &temp))
-				{
-					/* Temp read OK, CRC is OK */
-					HAL_GPIO_WritePin(LED_GPIO_Port,LED_Pin,GPIO_PIN_SET);
-					/* Start again on all sensors */
-					TM_DS18B20_StartAll(&oneWireDS18B20);
 
-				}
-				else
-				{
-					/* CRC failed, hardware problems on data line */
-					HAL_GPIO_WritePin(LED_GPIO_Port,LED_Pin,GPIO_PIN_RESET);
-				}
-			}
-		}
+
 	}
   /* USER CODE END StartTask10ms */
 }
