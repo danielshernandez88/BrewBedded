@@ -24,9 +24,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "tm_stm32_delay.h"
 #include "tm_stm32_onewire.h"
 #include "tm_stm32_ds18b20.h"
+#include "tm_stm32_hd44780.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,6 +50,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+DMA_HandleTypeDef hdma_adc1;
 
 I2C_HandleTypeDef hi2c1;
 
@@ -64,13 +69,20 @@ osThreadId Task_10msHandle;
 uint32_t myTask10msBuffer[ 128 ];
 osStaticThreadDef_t myTask10msControlBlock;
 /* USER CODE BEGIN PV */
-
+TM_OneWire_t oneWireDS18B20;
+uint8_t DS_ROM[8];
+/* Temperature variable */
+uint16_t temp;
+char buffer[20];
+ADC_HandleTypeDef hadc1;
+uint32_t valueAdc[3], adc_buffer[3], read_values[3];
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_TIM2_Init(void);
@@ -85,7 +97,16 @@ void StartTask10ms(void const * argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+	if(hadc->Instance == ADC1)
+	{
+		for(int i=0; i<3; i++)
+		{
+			valueAdc[i] = adc_buffer[i];
+		}
+	}
+}
 /* USER CODE END 0 */
 
 /**
@@ -116,11 +137,14 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_ADC1_Init();
   MX_I2C1_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   TM_OneWire_Init(&oneWireDS18B20, ds18b20_data_GPIO_Port, ds18b20_data_Pin);
+  /* Initialize LCD 20 cols x 4 rows */
+  TM_HD44780_Init(16, 2);
 
   if (TM_OneWire_First(&oneWireDS18B20))
   {
@@ -143,6 +167,8 @@ int main(void)
   	/* Start conversion on all sensors */
   	TM_DS18B20_StartAll(&oneWireDS18B20);
   }
+
+  HAL_ADC_Start_DMA(&hadc1, adc_buffer, 3);
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -159,6 +185,11 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
+  /* Save custom character on location 0 in LCD */
+
+  /* Put string to LCD */
+  TM_HD44780_Puts(3, 0, "BrewBedded");
+  TM_HD44780_Puts(4, 1, "By LeinaD");
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -262,12 +293,12 @@ static void MX_ADC1_Init(void)
   /** Common config 
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
   hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
-  hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T1_CC1;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.NbrOfConversion = 3;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
     Error_Handler();
@@ -276,7 +307,23 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure Regular Channel 
+  */
+  sConfig.Channel = ADC_CHANNEL_1;
+  sConfig.Rank = ADC_REGULAR_RANK_2;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure Regular Channel 
+  */
+  sConfig.Channel = ADC_CHANNEL_2;
+  sConfig.Rank = ADC_REGULAR_RANK_3;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -371,6 +418,21 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 2 */
   HAL_TIM_MspPostInit(&htim2);
+
+}
+
+/** 
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void) 
+{
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
 }
 
@@ -511,17 +573,63 @@ void StartTask10ms(void const * argument)
   /* USER CODE BEGIN StartTask10ms */
 	TickType_t xLastWakeTime;
 	const TickType_t xFrequency = 10;
+	static uint8_t cnt100ms=0;
 
 	// Initialize the xLastWakeTime variable with the current time.
 	xLastWakeTime = xTaskGetTickCount();
+
+	TM_HD44780_Clear();
 
 	for( ;; )
 	{
 		// Wait for the next cycle.
 		vTaskDelayUntil( &xLastWakeTime, xFrequency );
 
+		if(cnt100ms > 100)
+		{
+			if (TM_DS18B20_Is(DS_ROM))
+			{
+				/* Everything is done */
+				if (TM_DS18B20_AllDone(&oneWireDS18B20))
+				{
+					/* Read temperature from device */
+					if (TM_DS18B20_Read(&oneWireDS18B20, DS_ROM, &temp))
+					{
+						/* Temp read OK, CRC is OK */
+						HAL_GPIO_WritePin(LED_GPIO_Port,LED_Pin,GPIO_PIN_SET);
+						/* Start again on all sensors */
+						TM_DS18B20_StartAll(&oneWireDS18B20);
 
+						TM_HD44780_Puts(0, 0, "TempAgua: ");
+						itoa(temp,buffer,10);
+						TM_HD44780_Puts(10, 0, buffer);
+						TM_HD44780_Puts(13, 0, "C");
 
+					}
+					else
+					{
+						/* CRC failed, hardware problems on data line */
+						HAL_GPIO_WritePin(LED_GPIO_Port,LED_Pin,GPIO_PIN_RESET);
+					}
+				}
+			}
+			itoa(valueAdc[0],buffer,10);
+			TM_HD44780_Puts(0, 1, buffer);
+
+			valueAdc[1] = valueAdc[1]/10;
+
+			itoa(valueAdc[1],buffer,10);
+			TM_HD44780_Puts(6, 1, buffer);
+
+			itoa(valueAdc[2],buffer,10);
+			TM_HD44780_Puts(13, 1, buffer);
+
+			cnt100ms = 0;
+		}
+		else
+		{
+			cnt100ms++;
+		}
 	}
   /* USER CODE END StartTask10ms */
 }

@@ -18,6 +18,7 @@ C_DEPS :=
 SUBDIRS := \
 Drivers/STM32F1xx_HAL_Driver/Src \
 Middlewares/IoHw_ds18b20 \
+Middlewares/Lcd_hd44780 \
 Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS \
 Middlewares/Third_Party/FreeRTOS/Source \
 Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM3 \

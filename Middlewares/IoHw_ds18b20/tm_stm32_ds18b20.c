@@ -58,7 +58,7 @@ uint8_t TM_DS18B20_Read(TM_OneWire_t* OneWire, uint8_t *ROM, uint16_t *destinati
 	uint8_t i = 0;
 	uint8_t data[9];
 	uint8_t crc;
-	
+
 	/* Check if device is DS18B20 */
 	if (!TM_DS18B20_Is(ROM)) {
 		return 0;
@@ -83,7 +83,7 @@ uint8_t TM_DS18B20_Read(TM_OneWire_t* OneWire, uint8_t *ROM, uint16_t *destinati
 		/* Read byte by byte */
 		data[i] = TM_OneWire_ReadByte(OneWire);
 	}
-	
+
 	/* Calculate CRC */
 	crc = TM_OneWire_CRC8(data, 8);
 	
@@ -397,39 +397,6 @@ uint8_t TM_DS18B20_AlarmSearch(TM_OneWire_t* OneWire) {
 uint8_t TM_DS18B20_AllDone(TM_OneWire_t* OneWire) {
 	/* If read bit is low, then device is not finished yet with calculation temperature */
 	return TM_OneWire_ReadBit(OneWire);
-}
-
-uint8_t TM_DS18B20_ReadAndRequestRead()
-{
-	uint8_t retVal = 1;
-	static TM_OneWire_t oneWireDS18B20;
-	static uint8_t DS_ROM[8];
-	/* Temperature variable */
-	float temp;
-
-	if (TM_DS18B20_Is(DS_ROM))
-	{
-		/* Everything is done */
-		if (TM_DS18B20_AllDone(&oneWireDS18B20))
-		{
-			/* Read temperature from device */
-			if (TM_DS18B20_Read(&oneWireDS18B20, DS_ROM, &temp))
-			{
-				/* Temp read OK, CRC is OK */
-				HAL_GPIO_WritePin(LED_GPIO_Port,LED_Pin,GPIO_PIN_SET);
-				/* Start again on all sensors */
-				TM_DS18B20_StartAll(&oneWireDS18B20);
-
-				retVal = 0;
-
-			}
-			else
-			{
-				/* CRC failed, hardware problems on data line */
-				HAL_GPIO_WritePin(LED_GPIO_Port,LED_Pin,GPIO_PIN_RESET);
-			}
-		}
-	}
 }
 
 

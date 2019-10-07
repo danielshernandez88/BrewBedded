@@ -90,10 +90,10 @@
 
 /* DS18B20 read temperature command */
 #define DS18B20_CMD_CONVERTTEMP			0x44 	/* Convert temperature */
-#define DS18B20_DECIMAL_STEPS_12BIT		16 /*0.0625*/
+#define DS18B20_DECIMAL_STEPS_12BIT		16  /*0.0625*/
 #define DS18B20_DECIMAL_STEPS_11BIT		8  /*0.125*/
 #define DS18B20_DECIMAL_STEPS_10BIT		4  /*0.25*/
-#define DS18B20_DECIMAL_STEPS_9BIT		2  /*0.5*/
+#define DS18B20_DECIMAL_STEPS_9BIT		2 /*0.5*/
 
 /* Bits locations for resolution */
 #define DS18B20_RESOLUTION_R1			6

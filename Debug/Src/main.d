@@ -46,7 +46,8 @@ Src/main.o: ../Src/main.c ../Inc/main.h \
  C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/dwt_stm32_delay.h \
  C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/tm_stm32_delay.h \
  C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/tm_stm32_ds18b20.h \
- C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/tm_stm32_onewire.h
+ C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/tm_stm32_onewire.h \
+ C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/Lcd_hd44780/tm_stm32_hd44780.h
 
 ../Inc/main.h:
 
@@ -145,3 +146,5 @@ C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/t
 C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/tm_stm32_ds18b20.h:
 
 C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/IoHw_ds18b20/tm_stm32_onewire.h:
+
+C:/Users/danie/STM32CubeIDE/workspace_1.0.1/BrewSaSys/Middlewares/Lcd_hd44780/tm_stm32_hd44780.h:

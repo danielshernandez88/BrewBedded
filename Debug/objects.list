@@ -17,6 +17,7 @@
 "Middlewares/IoHw_ds18b20/tm_stm32_delay.o"
 "Middlewares/IoHw_ds18b20/tm_stm32_ds18b20.o"
 "Middlewares/IoHw_ds18b20/tm_stm32_onewire.o"
+"Middlewares/Lcd_hd44780/tm_stm32_hd44780.o"
 "Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.o"
 "Middlewares/Third_Party/FreeRTOS/Source/croutine.o"
 "Middlewares/Third_Party/FreeRTOS/Source/event_groups.o"

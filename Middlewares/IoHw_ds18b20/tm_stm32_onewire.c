@@ -87,6 +87,7 @@ uint8_t TM_OneWire_Reset(TM_OneWire_t* OneWireStruct) {
 }
 
 void TM_OneWire_WriteBit(TM_OneWire_t* OneWireStruct, uint8_t bit) {
+	__disable_irq();
 	if (bit) {
 		/* Set line low */
 		ONEWIRE_LOW();
@@ -112,19 +113,20 @@ void TM_OneWire_WriteBit(TM_OneWire_t* OneWireStruct, uint8_t bit) {
 		ONEWIRE_DELAY(5);
 		ONEWIRE_INPUT();
 	}
+	__enable_irq();
 }
 
 uint8_t TM_OneWire_ReadBit(TM_OneWire_t* OneWireStruct) {
 	uint8_t bit = 0;
-	
+	__disable_irq();
 	/* Line low */
 	ONEWIRE_LOW();
 	ONEWIRE_OUTPUT();
-	ONEWIRE_DELAY(6); /*3*/
+	ONEWIRE_DELAY(4); /*3*/
 	
 	/* Release line */
 	ONEWIRE_INPUT();
-	ONEWIRE_DELAY(10); /*10*/
+	ONEWIRE_DELAY(15); /*10*/
 	
 	/* Read line value */
 	if (HAL_GPIO_ReadPin(ds18b20_data_GPIO_Port,ds18b20_data_Pin)) {
@@ -133,8 +135,10 @@ uint8_t TM_OneWire_ReadBit(TM_OneWire_t* OneWireStruct) {
 	}
 	
 	/* Wait 50us to complete 60us period */
-	ONEWIRE_DELAY(100); /*50*/
+	ONEWIRE_DELAY(55); /*50*/
 	
+	__enable_irq();
+
 	/* Return bit value */
 	return bit;
 }
